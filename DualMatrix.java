@@ -7,13 +7,14 @@ import java.util.Scanner;
 public class DualMatrix {
     private int rows;
     private int columns;
+    private int psi;
     private int[] supplies;
     private int[] demands;
     private int[] A;
     private int[] u;
     private int[] v;
     private int[][] costs;
-    private int[][] basicCells;
+    private int[][] gamma;
     private int[][] D;
     private int[][] allocation;
 
@@ -48,6 +49,7 @@ public class DualMatrix {
         }
 
         input.close();
+        computeInitialValues();
     }
 
     public void solve() {
@@ -71,12 +73,13 @@ public class DualMatrix {
         }
     }
 
-    public void computeInitialValues() {
+    private void computeInitialValues() {
         A = new int[rows + columns];
 
         for (int i = 0; i < columns; i++) {
             A[i] = demands[i];
         }
+
         for (int i = columns; i < columns + rows; i++) {
             A[i] = -supplies[i - columns];
         }
@@ -98,31 +101,62 @@ public class DualMatrix {
             }
         }
 
-        basicCells = new int[rows + columns][columns];
+        gamma = new int[rows + columns][columns];
 
-        for (int j = 0; j < columns; j++) {
-            for (int i = 0; i < rows; i++) {
-                if (costs[i][j] == v[j]) {
-                    basicCells[j][0] = i;
-                    basicCells[j][1] = j;
+        for (int j = 1; j <= columns; j++) {
+            for (int i = 1; i <= rows; i++) {
+                if (costs[i - 1][j - 1] == v[j - 1]) {
+                    gamma[j - 1][0] = i;
+                    gamma[j - 1][1] = j;
                 }
             }
         }
 
-        for (int i = 1; i <= rows; i++) {
-            basicCells[i][0] = i;
-            basicCells[i][1] = 0;
+        for (int i = 0; i < rows; i++) {
+            gamma[columns + i][0] = i + 1;
         }
 
         D = new int[rows + columns][rows + columns];
 
         for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < columns; j++) {
-                if (costs[i][j] < v[j]) {
-                    v[j] = costs[i][j];
+            for (int j = 0; j < rows + columns; j++) {
+                if (i == j) {
+                    D[i][j] = 1;
+                } else {
+                    D[i][j] = 0;
                 }
             }
         }
+
+        for (int i = rows; i < rows + columns; i++) {
+            for (int j = 0; j < rows + columns; j++) {
+                if (i == j) {
+                    D[i][j] = -1;
+                } else {
+                    D[i][j] = 0;
+                }
+            }
+        }
+
+        // for (int i = 0; i < rows; i++) {
+        // D[i][gamma[i][1] + rows] = -1;
+        // }
+
+        computeObjective();
+    }
+
+    private void computeObjective() {
+        int sum = 0;
+
+        for (int i = 0; i < rows + columns; i++) {
+            if (i < rows) {
+                sum += A[i] * u[i];
+            } else {
+                sum += A[i] * v[i - rows];
+            }
+        }
+
+        psi = sum;
     }
 
     private int[][] computeDualMatrix() {
@@ -198,7 +232,6 @@ public class DualMatrix {
             e.printStackTrace();
         }
 
-        // dm.solve();
         // int[][] allocation = dm.getAllocation();
 
         // for (int i = 0; i < allocation.length; i++) {
