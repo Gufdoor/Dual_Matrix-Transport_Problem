@@ -12,8 +12,9 @@ public class DualMatrix {
     private int[] A;
     private int[] u;
     private int[] v;
-    private int[][] basicCells;
     private int[][] costs;
+    private int[][] basicCells;
+    private int[][] D;
     private int[][] allocation;
 
     public DualMatrix() {
@@ -83,12 +84,15 @@ public class DualMatrix {
         u = new int[rows];
         v = new int[columns];
 
-        v[0] = costs[0][0];
-        v[0] = costs[0][1];
+        for (int i = 0; i < v.length; i++) {
+            v[i] = costs[0][i];
+        }
 
         for (int i = 0; i < rows; i++) {
+            u[i] = 0;
+
             for (int j = 0; j < columns; j++) {
-                if (costs[i][j] > v[j]) {
+                if (costs[i][j] < v[j]) {
                     v[j] = costs[i][j];
                 }
             }
@@ -96,9 +100,25 @@ public class DualMatrix {
 
         basicCells = new int[rows + columns][columns];
 
-        for (int i = 0; i < rows + columns; i++) {
+        for (int j = 0; j < columns; j++) {
+            for (int i = 0; i < rows; i++) {
+                if (costs[i][j] == v[j]) {
+                    basicCells[j][0] = i;
+                    basicCells[j][1] = j;
+                }
+            }
+        }
+
+        for (int i = 1; i <= rows; i++) {
+            basicCells[i][0] = i;
+            basicCells[i][1] = 0;
+        }
+
+        D = new int[rows + columns][rows + columns];
+
+        for (int i = 0; i < rows; i++) {
             for (int j = 0; j < columns; j++) {
-                if (costs[i][j] > v[j]) {
+                if (costs[i][j] < v[j]) {
                     v[j] = costs[i][j];
                 }
             }
