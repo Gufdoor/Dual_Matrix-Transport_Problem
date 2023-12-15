@@ -7,7 +7,7 @@ import java.util.Scanner;
 public class DualMatrix {
     private int rows;
     private int columns;
-    private int psi;
+    private int objective;
     private int[] supplies;
     private int[] demands;
     private int[] A;
@@ -138,25 +138,27 @@ public class DualMatrix {
             }
         }
 
-        // for (int i = 0; i < rows; i++) {
-        // D[i][gamma[i][1] + rows] = -1;
-        // }
-
+        for (int i = 0; i < rows; i++) {
+            D[i][gamma[1][i] + rows] = -1;
+        }
+        
+        System.out.println(Arrays.deepToString(D));
         computeObjective();
     }
 
     private void computeObjective() {
-        int sum = 0;
+        int sumDemands = 0;
+        int sumSupplies = 0;
 
-        for (int i = 0; i < rows + columns; i++) {
-            if (i < rows) {
-                sum += A[i] * u[i];
-            } else {
-                sum += A[i] * v[i - rows];
-            }
+        for (int i = 0; i < demands.length; i++) {
+            sumDemands += demands[i] * v[i];
         }
 
-        psi = sum;
+        for (int i = 0; i < supplies.length; i++) {
+            sumSupplies += supplies[i] * u[i];
+        }
+
+        objective = sumDemands - sumSupplies;
     }
 
     private int[][] computeDualMatrix() {
